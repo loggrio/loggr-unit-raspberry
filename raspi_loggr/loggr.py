@@ -118,7 +118,7 @@ def main():
             # Path to metering script
             p = scripts_path + script
             # Get function reference and import module generically
-            func = imp.load_source('meter', p)
+            func = imp.load_source(script, p)
             # Create sensor generically and save it into a dictionary
             sensors[sensor] = Sensor(sensor, location, unit, minimum, maximum, deviation, func=func.meter)
         else:

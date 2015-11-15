@@ -8,8 +8,8 @@ from datetime import datetime
 
 lcd = Adafruit_CharLCD()
 
-cmd_eth = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
-cmd_wlan = "ip addr show wlan0 | grep inet | awk '{print $2}' | cut -d/ -f1"
+cmd_eth = "ip addr show eth0 | grep inet\  | awk '{print $2}' | cut -d/ -f1"
+cmd_wlan = "ip addr show wlan0 | grep inet\  | awk '{print $2}' | cut -d/ -f1"
 
 lcd.begin(16, 1)
 

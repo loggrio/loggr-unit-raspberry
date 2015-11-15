@@ -16,7 +16,7 @@ fi
 IP=$1
 TARGET=pi@$IP:/home/pi/Coding/loggr.io/raspi
 
-RASPI_DIR="../raspi"
+RASPI_DIR="../"
 SENSORS="$RASPI_DIR/sensors/*.c $RASPI_DIR/sensors/Makefile $RASPI_DIR/sensors/*.py"
 PYTHON_UTILS="$RASPI_DIR/raspi_loggr/*.py"
 CONFIG_SERVER="$RASPI_DIR/config_server/*py"
@@ -29,10 +29,28 @@ if [ $ANSWER == "n" -o $ANSWER == "N" -o $ANSWER == "no" ]
   then exit 3
 elif [ $ANSWER == "y" -o $ANSWER == "Y" -o $ANSWER == "yes" ]
   then
-    scp -r $SENSORS $TARGET/sensors
-    scp -r $PYTHON_UTILS $TARGET/raspi_loggr
-    scp -r $GENERAL $TARGET
-    scp -r $CONFIG_SERVER $TARGET/config_server
-    exit 0
-else echo "Invalid answer, exit."; exit 4
+    echo "On which type of Raspberry Pi do you want to deploy?"
+    echo "Sensor Pi = 1"
+    echo "Camera Pi = 2"
+    echo "Viewer Pi = 3"
+    read TYPE
+    if [ $TYPE == "1" ]
+      then
+        scp -r $SENSORS $TARGET/sensors
+        scp -r $PYTHON_UTILS $TARGET/raspi_loggr
+        scp -r $GENERAL $TARGET
+        scp -r $CONFIG_SERVER $TARGET/config_server
+        exit 0
+    elif [ $TYPE == "2" ]
+      then
+        scp -r $RASPI_DIR/sensors/pir.py $TARGET/sensors/
+        scp -r $CONFIG_SERVER $TARGET/config_server
+        exit 0
+    elif [ $TYPE == "3" ]
+      then
+        echo "TODO"
+        exit 0
+    else echo "Invalid answer, exit."; exit 4
+    fi
+else echo "Invalid answer, exit."; exit 5
 fi

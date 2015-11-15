@@ -1,17 +1,18 @@
 #!/usr/bin/Python
-# pir_1.py
+# pir.py
 # Detect movement using a PIR module
 
 # Import required Python libraries
 import RPi.GPIO as GPIO
 import time
+import subprocess
 
 # Use BCM GPIO references
 # instead of physical pin numbers
 GPIO.setmode(GPIO.BCM)
 
-# Define GPIO to use on Pi
-GPIO_PIR = 26
+# Define GPIO to use on Pi (BCM)
+GPIO_PIR = 26 # BCM 26 = wiringPi-Pin 25
 
 print "PIR Module Test (CTRL-C to exit)"
 
@@ -23,7 +24,6 @@ Previous_State = 0
 
 try:
     print "Waiting for PIR to settle ..."
-
     # Loop until PIR output is 0
     while GPIO.input(GPIO_PIR) == 1:
         Current_State = 0
@@ -34,6 +34,12 @@ try:
         Current_State = GPIO.input(GPIO_PIR)
         if Current_State == 1 and Previous_State == 0:
             print "  Motion detected!"
+            # Start raspistill to take a picture
+            cam_call = ['raspistill', '-vf', '-o']
+            filename = '../pics/' + time.strftime('%Y%m%d-%H%M%S') + '.jpeg'
+            cam_call.append(filename)
+            # Take a pic and save it to pics folder
+            subprocess.call(cam_call)
             # Record previous state
             Previous_State = 1
         elif Current_State == 0 and Previous_State == 1:

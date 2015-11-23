@@ -1,0 +1,61 @@
+import RPi.GPIO as GPIO
+import time
+from os import path
+import subprocess
+import logging
+from raspi_loggr.util import log_error
+from raspi_loggr.util import log_info
+from ConfigParser import ConfigParser
+
+GPIO.setmode(GPIO.BCM)
+PIR_PIN = 26
+GPIO.setup(PIR_PIN, GPIO.IN)
+
+config = ConfigParser()
+HOME_DIR = path.expanduser("~")
+CONFIG_FILE = HOME_DIR + '/.loggrrc'
+
+PICS_PATH = '/home/pi/Coding/loggr.io/raspi/pics/'
+
+
+def send_picture():
+    pass
+
+
+def take_picture():
+    sub_call = ['sudo', 'raspistill', '-vf', '-o']
+    filename = PICS_PATH + time.strftime('%Y%m%d-%H%M%S') + '.jpeg'
+    sub_call.append(filename)
+    subprocess.call(sub_call)
+    log_info('PIR: Took picture')
+
+
+def motion(PIR_PIN):
+    log_info('PIR: Motion detected')
+    take_picture()
+
+
+def main():
+    logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
+                        filename='pir.log', level=logging.INFO)
+    log_info('PIR-Logging (re)started')
+
+    print 'PIR ssensor script (STRG+C to exit)'
+    time.sleep(1)
+
+    # get config data
+    # handle config errors
+
+    print 'Ready'
+    try:
+        # Add listener to gpio pin 26 to detect rising edge
+        GPIO.add_event_detect(PIR_PIN, GPIO.RISING, callback=motion)
+        while 1:
+            time.sleep(3)
+    except KeyboardInterrupt:
+        print 'Exit'
+        GPIO.cleanup()
+
+
+if __name__ == "__main__":
+    main()

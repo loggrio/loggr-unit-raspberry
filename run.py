@@ -9,6 +9,9 @@ if __name__ == "__main__":
     elif len(sys.argv) > 1 and sys.argv[1] == "--config":
         from config_server.server import main as server_main
         server_main()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--pir":
+        from pir.pir_int import main as pir_main
+        pir_main()
     else:
         from raspi_loggr.loggr import main
         main()

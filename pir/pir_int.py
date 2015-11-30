@@ -5,6 +5,8 @@ import subprocess
 import logging
 from raspi_loggr.util import log_error
 from raspi_loggr.util import log_info
+from raspi_loggr.util import treat_missing_config_errors
+from raspi_loggr.util import treat_pairing_errors
 from ConfigParser import ConfigParser
 
 GPIO.setmode(GPIO.BCM)
@@ -15,7 +17,8 @@ config = ConfigParser()
 HOME_DIR = path.expanduser("~")
 CONFIG_FILE = HOME_DIR + '/.loggrrc'
 
-PICS_PATH = '/home/pi/Coding/loggr.io/raspi/pics/'
+# PICS_PATH = '/home/pi/Coding/loggr.io/raspi/pics/'
+PICS_PATH = '/tmp/stream/'
 
 
 def send_picture():
@@ -32,7 +35,8 @@ def take_picture():
 
 def motion(PIR_PIN):
     log_info('PIR: Motion detected')
-    take_picture()
+    # take_picture()
+    send_picture()
 
 
 def main():
@@ -45,6 +49,33 @@ def main():
 
     # get config data
     # handle config errors
+    if not path.isfile(CONFIG_FILE):
+        treat_missing_config_errors()
+        return
+
+    config.read(CONFIG_FILE)
+
+    # Check if config file contains options url
+    if not config.has_option('AUTH', 'token') or \
+       not config.has_option('AUTH', 'userid') or \
+       not config.has_option('CAMERA', 'url'):
+        treat_missing_config_errors()
+        return
+
+    # Get token and user id from config file
+    token = config.get('AUTH', 'token')
+    userid = config.get('AUTH', 'userid')
+    url = config.get('CAMERA', 'url')
+
+    # Check if token and userid is set
+    if not len(token) or not len(userid):
+        treat_pairing_errors()
+        return
+
+    # Check if url is set
+    if not len(url):
+        treat_missing_config_errors()
+        return
 
     print 'Ready'
     try:

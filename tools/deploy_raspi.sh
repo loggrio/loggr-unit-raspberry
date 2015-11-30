@@ -21,6 +21,7 @@ SENSORS="$RASPI_DIR/sensors/*.c $RASPI_DIR/sensors/Makefile $RASPI_DIR/sensors/*
 PYTHON_UTILS="$RASPI_DIR/raspi_loggr/*.py"
 CONFIG_SERVER="$RASPI_DIR/config_server/*py"
 GENERAL="$RASPI_DIR/requirements.txt $RASPI_DIR/run.py"
+TFT="$RASPI_DIR/tft/"
 
 echo "Shell script to copy raspi files to raspberry pi"
 echo "Continue? [y/n]"
@@ -48,7 +49,7 @@ elif [ $ANSWER == "y" -o $ANSWER == "Y" -o $ANSWER == "yes" ]
         exit 0
     elif [ $TYPE == "3" ]
       then
-        echo "TODO"
+        scp -r $TFT $TARGET
         exit 0
     else echo "Invalid answer, exit."; exit 4
     fi

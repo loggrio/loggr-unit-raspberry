@@ -34,7 +34,8 @@ def main():
     4. Create sensors
     5. (loop) meter and send
     """
-    logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s', filename='loggr.log', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
+                        filename='loggr.log', level=logging.INFO)
     logging.info('Logging (re)started')
 
     # Check if config file exists
@@ -45,8 +46,10 @@ def main():
     config.read(CONFIG_FILE)
 
     # Check if config file contains options token and userid
-    if not config.has_option('AUTH', 'token') or not config.has_option('AUTH', 'userid') or \
-       not config.has_option('API', 'url') or not config.has_option('COMMON', 'scripts_path'):
+    if not config.has_option('AUTH', 'token') or \
+       not config.has_option('AUTH', 'userid') or \
+       not config.has_option('API', 'url') or \
+       not config.has_option('COMMON', 'scripts_path'):
         treat_missing_config_errors()
         return
 
@@ -76,7 +79,8 @@ def main():
             api_offline = False
         except requests.exceptions.RequestException as re:
             treat_requests_errors(re)
-            log_info('Api not reachable. Try again in ' + str(TIME_BETWEEN_API_TESTS) + ' seconds.')
+            log_info('Api not reachable. Try again in ' +
+                     str(TIME_BETWEEN_API_TESTS) + ' seconds.')
             api_offline = True
             time.sleep(TIME_BETWEEN_API_TESTS)
 
@@ -120,10 +124,12 @@ def main():
             # Get function reference and import module generically
             func = imp.load_source(script, p)
             # Create sensor generically and save it into a dictionary
-            sensors[sensor] = Sensor(sensor, location, unit, minimum, maximum, deviation, func=func.meter)
+            sensors[sensor] = Sensor(sensor, location, unit, minimum, maximum,
+                                     deviation, func=func.meter)
         else:
             # Create sensor generically and save it into a dictionary
-            sensors[sensor] = Sensor(sensor, location, unit, minimum, maximum, deviation, script=script)
+            sensors[sensor] = Sensor(sensor, location, unit, minimum, maximum,
+                                     deviation, script=script)
 
     while True:
         # Iterate through sensor config values

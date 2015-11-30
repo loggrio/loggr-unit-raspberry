@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from time import sleep, strftime
 from datetime import datetime
 import os
@@ -9,19 +8,18 @@ import sys
 import requests
 import logging
 
-logging.basicConfig(filename='show_stream.log', level=logging.DEBUG)
+logging.basicConfig(filename='show_stream.log', level=logging.INFO)
+logging.info('Logging (re)started')
 
 
-def run_cmd(cmd):
-
+def start_stream(stream):
     # example: "DISPLAY=:0.0 vlc -vvv -f http://141.60.125.254:8080/?
     #           action=stream 2>&1 > /tmp/vlc.log"
-
     try:
-        resultcode = os.system(cmd)
-    except OSError as e:
-        logging.info('Start VLC Error: ' + e.output)
-    return resultcode
+        res = os.system(stream)
+    except OSError as ose:
+        logging.error('OSError: ' + ose.output)
+    return res
 
 
 def check_stream(ip, port):
@@ -31,44 +29,40 @@ def check_stream(ip, port):
     tft_display = 'DISPLAY=:0.0 '
     vlc_command = 'vlc -vvv -f --play-and-exit '
     error_log = ' 2>&1 > /tmp/vlc.log'
-    cmd_show = tft_display + vlc_command + stream + error_log
-    isBroken = True
+    overall_cmd_show = tft_display + vlc_command + stream + error_log
+    isRunning = False
     time = 5
     while(True):
         try:
             # for example 'http://141.60.125.254:8080/?action=stream'
-            print "vor request"
             r = requests.head(http + ip + ':' + port + action)
-            print r
-            print "nach request"
-        except (requests.exceptions.ConnectionError):
-            print "ConnectionError try again"
-            isBroken = True
-            logging.info('Connection Error: ' + ip)
+        except requests.exceptions.ConnectionError as ce:
+            print "ConnectionError: Trying again..."
+            isRunning = False
+            logging.error('Connection Error: ' + ip)
             sleep(time)
             continue
 
-        if r.status_code == requests.codes.ok and isBroken is True:
-            run_cmd(cmd_show)
-            isBroken = False
+        if r.status_code == requests.codes.ok and isRunning is False:
+            start_stream(overall_cmd_show)
+            isRunning = True
             sleep(time)
 
-            # r.status_code = 400
-        if r.status_code == 400 and isBroken is True:
-            isBroken = False
-            run_cmd(cmd_show)  # debug
-            logging.info('Request Code not ok')
+        if r.status_code == 400 and isRunning is False:
+            isRunning = True
+            start_stream(overall_cmd_show)
+            logging.info('Stream (re)started')
             sleep(time)
             continue
 
         elif r.status_code != requests.codes.ok:
-            isBroken = True
+            isRunning = False
             sleep(5)
 
-        elif isBroken is True:
-            run_cmd(cmd_show)
-            logging.info('Start Stream')
-            isBroken = False
+        elif isRunning is False:
+            start_stream(overall_cmd_show)
+            logging.info('Stream (re)started')
+            isRunning = True
 
 
 def main():

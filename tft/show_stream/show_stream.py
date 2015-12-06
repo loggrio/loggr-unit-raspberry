@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 from time import sleep, strftime
 from datetime import datetime
+from ConfigParser import ConfigParser
+from os import path
 import os
 import time
 import sys
 import requests
 import logging
 
+HOME_DIR = path.expanduser("~")
+CONFIG_FILE = HOME_DIR + '/.loggrrc'
+
+config = ConfigParser()
 logging.basicConfig(filename='show_stream.log', level=logging.INFO)
 logging.info('Logging (re)started')
 
@@ -37,7 +43,6 @@ def check_stream(ip, port):
             # for example 'http://141.60.125.254:8080/?action=stream'
             r = requests.head(http + ip + ':' + port + action)
         except requests.exceptions.ConnectionError as ce:
-            print "ConnectionError: Trying again..."
             isRunning = False
             logging.error('Connection Error: ' + ip)
             sleep(time)
@@ -66,8 +71,30 @@ def check_stream(ip, port):
 
 
 def main():
-    ip = str(sys.argv[1])
-    port = str(sys.argv[2])
+    print 'hello'
+    # Check if config file exists
+    if not path.isfile(CONFIG_FILE):
+        logging.info('Config File not exists')
+        return
+
+    config.read(CONFIG_FILE)
+
+    # Check if config file contains options token and userid
+    if not config.has_option('STREAMING', 'streaming_pi_ip') or \
+       not config.has_option('STREAMING', 'port'):
+        logging.info('missing options in config file')
+        return
+
+    # Get token and user id from config file
+    ip = config.get('STREAMING', 'streaming_pi_ip')
+    port = config.get('STREAMING', 'port')
+
+
+    # Check if ip and port is set
+    if not len(ip) or not len(port):
+       logging.info('ip or port in config file not set')
+       return
+
     check_stream(ip, port)
 
 if __name__ == '__main__':

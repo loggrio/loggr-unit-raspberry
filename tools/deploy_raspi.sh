@@ -22,6 +22,8 @@ PYTHON_UTILS="$RASPI_DIR/raspi_loggr/*.py"
 CONFIG_SERVER="$RASPI_DIR/config_server/*py"
 GENERAL="$RASPI_DIR/requirements.txt $RASPI_DIR/run.py"
 TFT="$RASPI_DIR/tft/"
+PIR="$RASPI_DIR/pir/"
+STREAM="$RASPI_DIR/stream/"
 
 echo "Shell script to copy raspi files to raspberry pi"
 echo "Continue? [y/n]"
@@ -32,7 +34,7 @@ elif [ $ANSWER == "y" -o $ANSWER == "Y" -o $ANSWER == "yes" ]
   then
     echo "On which type of Raspberry Pi do you want to deploy?"
     echo "Sensor Pi = 1"
-    echo "Camera Pi = 2"
+    echo "Streaming Pi = 2"
     echo "Viewer Pi = 3"
     read TYPE
     if [ $TYPE == "1" ]
@@ -44,8 +46,10 @@ elif [ $ANSWER == "y" -o $ANSWER == "Y" -o $ANSWER == "yes" ]
         exit 0
     elif [ $TYPE == "2" ]
       then
-        scp -r $RASPI_DIR/sensors/pir.py $TARGET/sensors/
-        scp -r $CONFIG_SERVER $TARGET/config_server
+        scp -r $PIR/pir_int.py $TARGET/pir
+        scp -r $PYTHON_UTILS $TARGET/raspi_loggr
+        scp -r $STREAM $TARGET
+        scp -r $GENERAL $TARGET
         exit 0
     elif [ $TYPE == "3" ]
       then

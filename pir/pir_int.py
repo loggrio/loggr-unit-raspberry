@@ -30,10 +30,6 @@ num_pics = 0  # take and send n pictures to webapp after motion detection
 
 def send_pictures():
     # create container
-    print containers_url
-    print num_pics
-    print time_between_pics
-
     container_name = str(int(time()))
     payload = {'name': container_name}
     headers = {'Content-Type': 'application/json'}

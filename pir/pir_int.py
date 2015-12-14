@@ -19,21 +19,26 @@ config = ConfigParser()
 HOME_DIR = path.expanduser("~")
 CONFIG_FILE = HOME_DIR + '/.loggrrc'
 
-# PICS_PATH = '/home/pi/Coding/loggr.io/raspi/pics/'
 PICS_PATH = '/tmp/stream/pic.jpg'
-CONTAINERS_URL = 'http://0.0.0.0:3000/api/containers/'
 
-NUM_PICS = 5  # take and send 5 pictures to webapp after motion detection
-TIME_BETWEEN_PICS = 2  # 2 seconds between pictures
+token = ''
+userid = ''
+containers_url = ''
+time_between_pics = 0  # n seconds between pictures
+num_pics = 0  # take and send n pictures to webapp after motion detection
 
 
 def send_pictures():
     # create container
+    print containers_url
+    print num_pics
+    print time_between_pics
+
     container_name = str(int(time()))
     payload = {'name': container_name}
     headers = {'Content-Type': 'application/json'}
     try:
-        r = requests.post(CONTAINERS_URL, data=json.dumps(payload),
+        r = requests.post(containers_url, data=json.dumps(payload),
                           headers=headers)
         print 'Container created'
     except requests.exceptions.ConnectionError as ce:
@@ -45,15 +50,15 @@ def send_pictures():
     else:
         # send file to container
         i = 0
-        while (i < NUM_PICS):
+        while (i < int(num_pics)):
             filename = 'pic' + str(int(time())) + '.jpg'
             files = {'file': (filename, open(PICS_PATH, 'rb'))}
-            PICS_URL = CONTAINERS_URL + container_name + '/upload'
+            PICS_URL = containers_url + container_name + '/upload'
             try:
                 r = requests.post(PICS_URL, files=files)
                 print 'File sent'
                 i = i + 1
-                sleep(TIME_BETWEEN_PICS)
+                sleep(float(time_between_pics))
             except requests.exceptions.ConnectionError as ce:
                 log_error('requests failure: ' + str(ce))
                 return
@@ -78,6 +83,12 @@ def motion(PIR_PIN):
 
 
 def main():
+    global token
+    global userid
+    global containers_url
+    global num_pics
+    global time_between_pics
+
     logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
                         filename='pir.log', level=logging.INFO)
     log_info('PIR-Logging (re)started')
@@ -87,33 +98,39 @@ def main():
 
     # get config data
     # handle config errors
-    # if not path.isfile(CONFIG_FILE):
-    #     treat_missing_config_errors()
-    #     return
-    #
-    # config.read(CONFIG_FILE)
-    #
-    # # Check if config file contains options url
-    # if not config.has_option('AUTH', 'token') or \
-    #    not config.has_option('AUTH', 'userid') or \
-    #    not config.has_option('CAMERA', 'url'):
-    #     treat_missing_config_errors()
-    #     return
-    #
-    # # Get token and user id from config file
-    # token = config.get('AUTH', 'token')
-    # userid = config.get('AUTH', 'userid')
-    # url = config.get('CAMERA', 'url')
-    #
-    # # Check if token and userid is set
-    # if not len(token) or not len(userid):
-    #     treat_pairing_errors()
-    #     return
-    #
-    # # Check if url is set
-    # if not len(url):
-    #     treat_missing_config_errors()
-    #     return
+    if not path.isfile(CONFIG_FILE):
+        treat_missing_config_errors()
+        return
+
+    config.read(CONFIG_FILE)
+
+    # Check if config file contains options url
+    if not config.has_option('AUTH', 'token') or \
+       not config.has_option('AUTH', 'userid') or \
+       not config.has_option('API', 'url') or \
+       not config.has_option('CAMERA', 'num_pics') or \
+       not config.has_option('CAMERA', 'time_between_pics'):
+        treat_missing_config_errors()
+        return
+
+    # Get token and user id from config file
+    token = config.get('AUTH', 'token')
+    userid = config.get('AUTH', 'userid')
+    containers_url = config.get('API', 'url') + 'containers/'
+
+    num_pics = config.get('CAMERA', 'num_pics')
+    time_between_pics = config.get('CAMERA', 'time_between_pics')
+
+    # Check if token and userid is set
+    if not len(token) or not len(userid):
+        treat_pairing_errors()
+        return
+
+    # Check if url is set
+    if not len(containers_url) or not len(num_pics) or \
+       not len(time_between_pics):
+        treat_missing_config_errors()
+        return
 
     print 'Ready'
     try:

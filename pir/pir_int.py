@@ -1,3 +1,8 @@
+#!/usr/bin/python
+# pir_int.py
+# Detect movement using a PIR module, send pictures to web server
+
+# import required python libraries
 import RPi.GPIO as GPIO
 from time import time, sleep
 import json
@@ -11,16 +16,21 @@ from raspi_loggr.util import treat_missing_config_errors
 from raspi_loggr.util import treat_pairing_errors
 from ConfigParser import ConfigParser
 
+# use BCM GPIO references instead of physical pin numbers
 GPIO.setmode(GPIO.BCM)
+# use pin 26 (bcm) as input signal pin for PIR module
 PIR_PIN = 26
+# set pin as input
 GPIO.setup(PIR_PIN, GPIO.IN)
 
+# get config file reference
 config = ConfigParser()
 HOME_DIR = path.expanduser("~")
 CONFIG_FILE = HOME_DIR + '/.loggrrc'
 
 PICS_PATH = '/tmp/stream/pic.jpg'
 
+# declare global variables
 token = ''
 userid = ''
 containers_url = ''
@@ -29,6 +39,10 @@ num_pics = 0  # take and send n pictures to webapp after motion detection
 
 
 def send_pictures():
+    """Send pictures to web server
+       {num_pics} pics will be sent, one pic every {time_between_pics}
+       seconds
+    """
     # create container
     container_name = str(int(time()))
     payload = {'name': container_name}
@@ -38,27 +52,32 @@ def send_pictures():
                           headers=headers)
         print 'Container created'
     except requests.exceptions.ConnectionError as ce:
+        # catch and treat requests connection errors
         log_error('requests failure: ' + str(ce))
         return
     except requests.exceptions.RequestException as re:
+        # catch and treat requests exceptions
         log_error('requests failure: ' + str(re))
         return
     else:
-        # send file to container
+        # send image files to container
         i = 0
         while (i < int(num_pics)):
+            # build file name
             filename = 'pic' + str(int(time())) + '.jpg'
             files = {'file': (filename, open(PICS_PATH, 'rb'))}
-            PICS_URL = containers_url + container_name + '/upload'
+            pics_url = containers_url + container_name + '/upload'
             try:
-                r = requests.post(PICS_URL, files=files)
+                r = requests.post(pics_url, files=files)
                 print 'File sent'
                 i = i + 1
                 sleep(float(time_between_pics))
             except requests.exceptions.ConnectionError as ce:
+                # catch and treat requests connection errors
                 log_error('requests failure: ' + str(ce))
                 return
             except requests.exceptions.RequestException as re:
+                # catch and treat requests exceptions
                 log_error('requests failure: ' + str(re))
                 return
 
@@ -72,6 +91,12 @@ def send_pictures():
 
 
 def motion(PIR_PIN):
+    """Callback function of event listener on pin 26
+       called on rising edge (motion detected by PIR module)
+
+    Args:
+        PIR_PIN (int): pin of detected event (rising edge)
+    """
     log_info('PIR: Motion detected')
     # take_picture()
     send_pictures()
@@ -79,12 +104,22 @@ def motion(PIR_PIN):
 
 
 def main():
+    """Main method of pir_int.py
+
+    1.  Start logging
+    2.  Check for valid config file
+    3.  Add event listener to pin 26, rising edge, motion() as cb function
+    4.  loop
+    4a. On rising edge: call motion(), send pics to web server
+    """
+    # declare variables as global
     global token
     global userid
     global containers_url
     global num_pics
     global time_between_pics
 
+    # start logging into file 'pir.log'
     logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
                         filename='pir.log', level=logging.INFO)
     log_info('PIR-Logging (re)started')
@@ -98,6 +133,7 @@ def main():
         treat_missing_config_errors()
         return
 
+    # read out config file
     config.read(CONFIG_FILE)
 
     # Check if config file contains options url

@@ -23,7 +23,7 @@ PYTHON_UTILS="$RASPI_DIR/raspi_loggr/"
 CONFIG_SERVER="$RASPI_DIR/config_server/"
 GENERAL="$RASPI_DIR/requirements.txt $RASPI_DIR/run.py"
 TFT="$RASPI_DIR/tft/"
-PIR="$RASPI_DIR/pir/*.py"
+PIR="$RASPI_DIR/pir/"
 STREAM="$RASPI_DIR/stream/"
 
 echo "Shell script to copy raspi files to raspberry pi"

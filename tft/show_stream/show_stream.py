@@ -71,7 +71,6 @@ def check_stream(ip, port):
 
 
 def main():
-    print 'hello'
     # Check if config file exists
     if not path.isfile(CONFIG_FILE):
         logging.info('Config File not exists')
